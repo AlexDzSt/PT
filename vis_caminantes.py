@@ -4,11 +4,13 @@ import networkx as nx
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.patches as mpatches
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import numpy as np
 import random
 from collections import Counter
+from typing import Any, Optional
 
 from caminantes import (
     jump_prob_traditional, jump_prob_degree_biased,
@@ -35,7 +37,7 @@ STRATEGY_COLORS: dict = {
 #  CONSTANTES DE ESTILO (Entry widgets)
 # ─────────────────────────────────────────────────────────────────────────────
 
-ENTRY_KW = dict(
+ENTRY_KW: dict[str, Any] = dict(
     bg="#1E2A38", fg="#E8F5E9",
     insertbackground="#E8F5E9",
     relief="flat",
@@ -56,11 +58,11 @@ def draw_network(
     ax,
     G:            nx.Graph,
     pos:          dict,
-    path:         list  = None,
-    start_node          = None,
-    strategy:     str   = "Traditional RW",
-    show_probs:   bool  = False,
-    current_probs: dict = None,
+    path:         Optional[list]  = None,
+    start_node                    = None,
+    strategy:     str             = "Traditional RW",
+    show_probs:   bool            = False,
+    current_probs: Optional[dict] = None,
 ) -> None:
     """
     Dibuja G sobre ax con la caminata path resaltada.
@@ -79,8 +81,8 @@ def draw_network(
     ax.set_facecolor("#0D1117")
 
     # ── Colores y tamaños de nodos ──
-    nc  = {n: "#263238" for n in G.nodes()}
-    ns  = {n: 300       for n in G.nodes()}
+    nc: dict         = {n: "#263238" for n in G.nodes()}
+    ns: dict[Any, float] = {n: 300   for n in G.nodes()}
     vc  = Counter(path) if path else {}
 
     if vc:
@@ -131,7 +133,7 @@ def draw_network(
                            edgecolors="#546E7A")
     nx.draw_networkx_labels(G, pos, {n: str(n) for n in G.nodes()},
                             ax=ax, font_color="white",
-                            font_size=7, font_weight="bold")
+                            font_size=10, font_weight="bold")
 
     # ── Etiquetas de probabilidad (desde el nodo actual) ──
     if show_probs and current_probs and path:
@@ -140,13 +142,34 @@ def draw_network(
                            for nb, pv in current_probs.items()}
         nx.draw_networkx_edge_labels(
             G, pos, edge_label_dict, ax=ax,
-            font_color="#FFF176", font_size=7,
+            font_color="#FFF176", font_size=14,
             bbox=dict(boxstyle="round,pad=0.1", fc="#1A237E", alpha=0.7))
 
     ax.set_title(f"Red — {strategy}", color="white",
                  fontsize=11, fontweight="bold", pad=10)
     ax.axis("off")
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  GRAFO PERSONALIZADO
+# ─────────────────────────────────────────────────────────────────────────────
+
+def build_custom_graph() -> nx.Graph:
+    """
+    Define aquí tu propio grafo de prueba. NetworkX no necesita conocer
+    la topología de antemano: basta con construir un objeto nx.Graph y
+    agregarle nodos/aristas a mano.
+    
+    """
+
+    G = nx.Graph()
+    G.add_edges_from([
+        (0, 1),   # centro – arriba
+        (0, 2),   # centro – derecha
+        (0, 3),   # centro – abajo-izquierda
+        (1, 3),   # arriba – abajo-izquierda
+    ])
+    return G
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  APLICACIÓN
@@ -162,6 +185,7 @@ class App(tk.Tk):
         "Erdős–Rényi (30,0.15)":  "er",
         "Barabási–Albert (30,2)": "ba",
         "Grid 5×5":               "grid",
+        "Grafo Ejemplo":          "custom",
     }
 
     def __init__(self):
@@ -170,8 +194,10 @@ class App(tk.Tk):
         self.configure(bg="#0D1117")
         self.minsize(1150, 720)
 
-        self.G:             nx.Graph = None
-        self.pos:           dict     = None
+        # Se inicializan vacíos; _load_graph() les asigna el grafo real
+        # justo debajo, así que nunca son None mientras la app corre.
+        self.G:             nx.Graph = nx.Graph()
+        self.pos:           dict     = {}
         # current_path  : lista de nodos de la caminata activa
         # current_probs : P(salto) desde path[-1] hacia sus vecinos
         #                 Siempre corresponde al NODO ACTUAL (path[-1]).
@@ -272,8 +298,8 @@ class App(tk.Tk):
     # ── Panel de controles ───────────────────────────────────────────────────
 
     def _build_controls(self, parent):
-        pad  = {"padx": 8, "pady": 3}
-        pad1 = {"padx": 8, "pady": 1}
+        pad:  dict[str, Any] = {"padx": 8, "pady": 3}
+        pad1: dict[str, Any] = {"padx": 8, "pady": 1}
 
         # Scrollable inner frame
         cv = tk.Canvas(parent, bg="#0D1117", highlightthickness=0)
@@ -447,6 +473,8 @@ class App(tk.Tk):
             G = nx.erdos_renyi_graph(30, 0.15, seed=42)
         elif key == "ba":
             G = nx.barabasi_albert_graph(30, 2, seed=42)
+        elif key == "custom":
+            G = build_custom_graph()
         else:  # grid
             raw = nx.grid_2d_graph(5, 5)
             G   = nx.relabel_nodes(raw, {n: i for i, n in enumerate(raw.nodes())})
@@ -658,8 +686,8 @@ class App(tk.Tk):
             ax_net = self.cmp_fig.add_subplot(2, 4, col + 1)
             ax_net.set_facecolor("#0D1117")
 
-            nc_map = {n: "#263238" for n in self.G.nodes()}
-            ns_map = {n: 160       for n in self.G.nodes()}
+            nc_map: dict             = {n: "#263238" for n in self.G.nodes()}
+            ns_map: dict[Any, float] = {n: 160       for n in self.G.nodes()}
             if vc:
                 mx  = max(vc.values())
                 r_  = int(color[1:3], 16)
@@ -740,7 +768,7 @@ class App(tk.Tk):
             f"Comparación  ·  inicio: {start}  ·  "
             f"P(parada)={stop_prob:.2f}  ·  p={p:.2f}  q={q:.2f}",
             color="#80CBC4", fontsize=9, fontweight="bold")
-        self.cmp_fig.tight_layout(rect=[0, 0, 1, 0.95])
+        self.cmp_fig.tight_layout(rect=(0, 0, 1, 0.95))
         self.cmp_canvas.draw()
 
         # ── Tabla de métricas ──
