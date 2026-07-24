@@ -39,7 +39,7 @@ STRATEGY_COLORS: dict = {
 #  PARÁMETROS
 # ─────────────────────────────────────────────────────────────────────────────
 
-G          = nx.karate_club_graph()   # cambia aquí el grafo si lo necesitas
+G          = nx.karate_club_graph()   # cambiar aquí el grafo si se necesita
 N          = G.number_of_nodes()
 START      = 0                        # nodo inicial
 MAX_STEPS  = N * 10                   # suficiente para cubrir el grafo
