@@ -1,0 +1,15 @@
+# Archivo de constantes generado automáticamente
+
+NODOS_ANILLO = 64
+ROWS = 50
+COLUMNS = 50
+RED = 1
+ROUTING = "RW-NODE2VEC"
+P = 0.5
+Q = 0.5
+REGLA = 1
+LONG_ENLACE = 2
+CICLOS = 30
+ENLACES_DINAMICOS = 2
+EXPLORADORES = 20
+DIV_CONEXIONES = 1
