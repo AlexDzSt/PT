@@ -190,7 +190,7 @@ class App(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("Random Walk Node Discovery Explorer")
+        self.title("Random Walk Lab")
         self.configure(bg="#0D1117")
         self.minsize(1150, 720)
 
