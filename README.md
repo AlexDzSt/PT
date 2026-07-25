@@ -1,5 +1,7 @@
 # Random Walk Lab
 
+Este Proyecto Terminal está asociado el Proyecto de Ciencia Básica y de Frontera  titulado "Modelos de reconexión para la autoorganización de redes complejas de gran escala" (CBF-2025-G-1812)
+
 Laboratorio en Python para simular, visualizar y comparar **caminatas aleatorias (random walks)** sobre grafos, implementando cuatro estrategias de salto distintas — incluyendo una variante inspirada en **node2vec**. El proyecto incluye una aplicación de escritorio interactiva (Tkinter + Matplotlib), utilidades de análisis, scripts de generación de gráficas y una suite de pruebas con `pytest`.
 
 ## Contenido del repositorio
